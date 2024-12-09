@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, Request, UploadFile, File
+from fastapi import APIRouter, Depends, Request, UploadFile, File, HTTPException, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.conf.config import settings
 from src.database.db import get_db
-from src.database.models import User
+from src.database.models import User, UserRole
 from src.schemas import UserResponse
 from src.services.auth import get_current_user
 from src.services.upload_file import UploadFileService
@@ -26,6 +26,8 @@ async def update_avatar_user(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admin can update the default avatar")
     avatar_url = UploadFileService(
         settings.CLOUDINARY_CLOUD_NAME, settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET
     ).upload_file(file, user.username)

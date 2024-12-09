@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
-from src.database.models import User
+from src.database.models import User, UserRole
 from src.schemas import CreateUser, UserResponse, Token, RequestEmail
 from src.services.auth import Hash, create_access_token, get_email_from_token
 from src.services.email import send_email
@@ -20,6 +20,25 @@ async def register_user(user_data: CreateUser,
                         background_tasks: BackgroundTasks,
                         request: Request,
                         db: AsyncSession = Depends(get_db)) -> User:
+    new_user = await create_user(user_data, background_tasks, request,UserRole.USER, db )
+    return new_user
+
+@router.post('/register/admin',
+             response_model=UserResponse,
+             status_code=status.HTTP_201_CREATED,
+             response_description="Create a new admin user")
+async def create_admin_user(user_data: CreateUser,  background_tasks: BackgroundTasks,
+                        request: Request,
+                        db: AsyncSession = Depends(get_db)) -> User:
+    new_admin = await create_user(user_data, background_tasks, request,UserRole.ADMIN, db )
+    return new_admin
+
+async def create_user(user_data: CreateUser,
+                        background_tasks: BackgroundTasks,
+                        request: Request,
+                        user_role: UserRole,
+                        db: AsyncSession = Depends(get_db)) -> User:
+    print(user_role)
     user_service = UserService(db)
     email_user = await user_service.get_user_by_email(user_data.email)
     if email_user:
@@ -30,7 +49,8 @@ async def register_user(user_data: CreateUser,
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail=f"User with username {user_data.username} already exists")
     user_data.password = Hash().get_password_hash(user_data.password)
-    new_user = await user_service.create_user(user_data)
+
+    new_user = await user_service.create_user(user_data, user_role)
     background_tasks.add_task(
         send_email, new_user.email, new_user.username, str(request.base_url)
     )

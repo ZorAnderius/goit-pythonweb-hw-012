@@ -1,10 +1,14 @@
-from sqlalchemy.orm import DeclarativeBase, relationship
-
+from enum import Enum
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Integer, String, DateTime, Date, func, ForeignKey, Boolean
+from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy import Integer, String, DateTime, Date, func, ForeignKey, Boolean, Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 class Base(DeclarativeBase):
     pass
@@ -41,4 +45,5 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), onupdate=func.now()
     )
+    role: Mapped[UserRole] = mapped_column(SqlEnum(UserRole), nullable=False, default=UserRole.USER)
     confirmed: Mapped[bool] = mapped_column(Boolean, default=False)

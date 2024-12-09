@@ -2,6 +2,9 @@ from datetime import date
 from typing import Optional
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
+from src.database.models import UserRole
+
+
 class UpdateContactModel(BaseModel):
     first_name: Optional[str] = Field(None, max_length=50, min_length=2, description="First name")
     last_name: Optional[str] = Field(None, max_length=50, min_length=2, description="Last name")
@@ -26,7 +29,6 @@ class ContactsResponse(ContactsModel):
 class UpdateUser(BaseModel):
     username: str = Field(None, max_length=50, min_length=2, description="User name")
     email: EmailStr = Field(None, max_length=50, description="User email")
-    avatar: str =  Field(None, description="User avatar")
 
 
 class CreateUser(BaseModel):
@@ -34,8 +36,13 @@ class CreateUser(BaseModel):
     email: EmailStr = Field(..., max_length=50, description="User email")
     password: str = Field(..., max_length=50, description="User password")
 
+
+
 class UserResponse(UpdateUser):
     id: int
+    role: UserRole
+    avatar: str
+
 
     model_config = ConfigDict(from_attributes=True)
 
