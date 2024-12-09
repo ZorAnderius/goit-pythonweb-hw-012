@@ -9,14 +9,14 @@
 
 ### 1. Clone the repository
     
-    ```bash
+```bash
         git clone https://github.com/ZorAnderius/goit-pythonweb-hw-10.git
         cd goit-pythonweb-hw-10
-    ```
+```
     
 ### 2. Add environment variables
     
-    ```bash
+```bash
         POSTGRES_USER=<YOUR_USERNAME>
         POSTGRES_PASSWORD=<YOUR_PASSWORD>
         POSTGRES_DB=<YOUR_DB_NAME>
@@ -34,33 +34,33 @@
         CLOUDINARY_CLOUD_NAME=<YOUR_CLOUDINARY_CLOUD_NAME>
         CLOUDINARY_API_KEY=<YOUR_CLOUDINARY_API_KEY>
         CLOUDINARY_API_SECRET=<YOUR_CLOUDINARY_API_SECRET>
-    ```
+```
     
-    where 
+where 
     
     
-    | Name | Type | Description |
-    | --- | --- | --- |
-    | POSTGRES_USER | str | User name for accessing the database |
-    | POSTGRES_PASSWORD | str | Password for accessing the database |
-    | POSTGRES_DB | str | Database name |
-    | JWT_SECRET_KEY | str | Secret key for JWT tokens |
-    | JWT_ALGORITHM | str | Algorithm for JWT tokens |
-    | JWT_TOKEN_EXPIRE_SECONDS | int | Token expiration time in seconds |
-    | MAIL_USERNAME | str | Email address |
-    | MAIL_PASSWORD | str | Email password |
-    | MAIL_FROM | str | Email address |
-    | MAIL_PORT | int | Email port |
-    | MAIL_SERVER | str | Email server |
-    | CLOUDINARY_CLOUD_NAME | str | Cloudinary cloud name |
-    | CLOUDINARY_API_KEY | str | Cloudinary API key |
-    | CLOUDINARY_API_SECRET | str | Cloudinary API secret |
+| Name | Type | Description |
+| --- | --- | --- |
+| POSTGRES_USER | str | User name for accessing the database |
+| POSTGRES_PASSWORD | str | Password for accessing the database |
+| POSTGRES_DB | str | Database name |
+| JWT_SECRET_KEY | str | Secret key for JWT tokens |
+| JWT_ALGORITHM | str | Algorithm for JWT tokens |
+| JWT_TOKEN_EXPIRE_SECONDS | int | Token expiration time in seconds |
+| MAIL_USERNAME | str | Email address |
+| MAIL_PASSWORD | str | Email password |
+| MAIL_FROM | str | Email address |
+| MAIL_PORT | int | Email port |
+| MAIL_SERVER | str | Email server |
+| CLOUDINARY_CLOUD_NAME | str | Cloudinary cloud name |
+| CLOUDINARY_API_KEY | str | Cloudinary API key |
+| CLOUDINARY_API_SECRET | str | Cloudinary API secret |
     
 ### 3. Run the application
     
-    ```bash
+```bash
        docker-compose up --build
-    ```
+```
     
 ### 4. Open the browser and go to http://localhost:8000
     
