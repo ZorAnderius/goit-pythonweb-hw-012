@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "goit-pythonweb-hw-012"
+version = "0.1.0"
+description = ""
+authors = ["ZorAnderius <gabriel.zorander@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+asyncpg = "^0.30.0"
+asyncio = "^3.4.3"
+sqlalchemy = "^2.0.36"
+alembic = "^1.14.0"
+fastapi = {extras = ["standard"], version = "^0.115.5"}
+unicorn = { extras = ["standard"], version = "^2.1.1" }
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+libgravatar = "^1.0.4"
+pydantic-settings = "^2.6.1"
+slowapi = "^0.1.9"
+fastapi-mail = "^1.4.2"
+cloudinary = "^1.41.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
