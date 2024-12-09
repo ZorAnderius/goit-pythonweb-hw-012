@@ -52,3 +52,7 @@ class Token(BaseModel):
 
 class RequestEmail(BaseModel):
     email: EmailStr
+
+class ResetPassword(BaseModel):
+    token: str = Field(..., description="Reset password token")
+    new_password: str = Field(...,max_length=50, description="New password")

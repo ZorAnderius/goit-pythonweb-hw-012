@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models import User, UserRole
 from src.schemas import CreateUser
 
-
 class UsersRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -45,6 +44,13 @@ class UsersRepository:
     async def update_avatar_url(self, email: EmailStr | str, url: str) -> User:
         user = await self.get_user_by_email(email)
         user.avatar = url
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user
+
+    async def update_user_password(self, user_id,  password: str) -> User:
+        user = await self.get_user_by_id(user_id)
+        user.hashed_password = password
         await self.session.commit()
         await self.session.refresh(user)
         return user

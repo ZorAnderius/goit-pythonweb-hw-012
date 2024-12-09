@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session
 
 from src.database.db import get_db
 from src.database.models import User, UserRole
-from src.schemas import CreateUser, UserResponse, Token, RequestEmail
+from src.schemas import CreateUser, UserResponse, Token, RequestEmail, ResetPassword
 from src.services.auth import Hash, create_access_token, get_email_from_token
-from src.services.email import send_email
+from src.services.email import send_email, send_reset_password_email
 from src.services.users import UserService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -38,7 +38,6 @@ async def create_user(user_data: CreateUser,
                         request: Request,
                         user_role: UserRole,
                         db: AsyncSession = Depends(get_db)) -> User:
-    print(user_role)
     user_service = UserService(db)
     email_user = await user_service.get_user_by_email(user_data.email)
     if email_user:
@@ -108,3 +107,41 @@ async def request_email(body: RequestEmail,
             send_email, user.email, user.username, str(request.base_url)
         )
     return {"message": "Check your email for confirmation"}
+
+@router.post("/password-reset-request", response_description="Reset password")
+async def password_reset_request(body: RequestEmail,
+                         background_tasks: BackgroundTasks,
+                         request: Request,
+                         db: Session = Depends(get_db)):
+    user_service = UserService(db)
+    user = await user_service.get_user_by_email(body.email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this email does not exist"
+        )
+    background_tasks.add_task(
+        send_reset_password_email, user.email, user.username, str(request.base_url)
+    )
+    return {"message": "Check your email for reset password"}
+
+@router.get("/password-reset-verify/{token}", response_description="Verify reset password token")
+async def password_reset_verify(token: str):
+    email = await get_email_from_token(token)
+    return {"message": "Token is valid", "email": email, 'token': token}
+
+@router.post("/reset_password", response_description="Reset password token")
+async def reset_password(body: ResetPassword,
+                                   db: Session = Depends(get_db)) -> dict:
+    email = await get_email_from_token(body.token)
+    user_service = UserService(db)
+    user = await user_service.get_user_by_email(email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this email does not exist"
+        )
+    hashed_password = Hash().get_password_hash(body.new_password)
+    await user_service.update_password(user.id, hashed_password)
+    return {"message": "Password has been successfully reset"}
