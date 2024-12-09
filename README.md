@@ -7,14 +7,14 @@
 
 ## Contacts App Installation
 
-    ### 1. Clone the repository
+### 1. Clone the repository
     
     ```bash
         git clone https://github.com/ZorAnderius/goit-pythonweb-hw-10.git
         cd goit-pythonweb-hw-10
     ```
     
-    ### 2. Add environment variables
+### 2. Add environment variables
     
     ```bash
         POSTGRES_USER=<YOUR_USERNAME>
@@ -56,16 +56,16 @@
     | CLOUDINARY_API_KEY | str | Cloudinary API key |
     | CLOUDINARY_API_SECRET | str | Cloudinary API secret |
     
-    ### 3. Run the application
+### 3. Run the application
     
     ```bash
        docker-compose up --build
     ```
     
-    ### 4. Open the browser and go to http://localhost:8000
+### 4. Open the browser and go to http://localhost:8000
     
     
-    ### 5. Swagger documentation: http://localhost:8000/docs
+### 5. Swagger documentation: http://localhost:8000/docs
 
 
 ## Reset Password Instructions
