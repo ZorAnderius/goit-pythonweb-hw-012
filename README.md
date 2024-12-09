@@ -2,73 +2,73 @@
 
 ## Content
 
-- [Contacts App Installation](#Contacts App Installation)
-- [Reset password instructions](#Reset password instructions)
+- [Contacts App Installation](#contacts-app-installation)
+- [Reset Password Instructions](#reset-password-instructions)
 
 ## Contacts App Installation
 
-### 1. Clone the repository
-
-```bash
-    git clone https://github.com/ZorAnderius/goit-pythonweb-hw-10.git
-    cd goit-pythonweb-hw-10
-```
-
-### 2. Add environment variables
-
-```bash
-    POSTGRES_USER=<YOUR_USERNAME>
-    POSTGRES_PASSWORD=<YOUR_PASSWORD>
-    POSTGRES_DB=<YOUR_DB_NAME>
+    ### 1. Clone the repository
     
-    JWT_SECRET_KEY=<YOUR_JWT_SECRET_KEY>
-    JWT_ALGORITHM=<YOUR_JWT_ALGORITHM>
-    JWT_TOKEN_EXPIRE_SECONDS=<YOUR_JWT_EXPIRE_SECONDS>
+    ```bash
+        git clone https://github.com/ZorAnderius/goit-pythonweb-hw-10.git
+        cd goit-pythonweb-hw-10
+    ```
     
-    MAIL_USERNAME=<YOUR_MAIL_USERNAME>
-    MAIL_PASSWORD=<YOUR_MAIL_PASSWORD>
-    MAIL_FROM=<YOUR_MAIL_FROM>
-    MAIL_PORT=<YOUR_MAIL_PORT>
-    MAIL_SERVER=<YOUR_MAIL_SERVER>
+    ### 2. Add environment variables
     
-    CLOUDINARY_CLOUD_NAME=<YOUR_CLOUDINARY_CLOUD_NAME>
-    CLOUDINARY_API_KEY=<YOUR_CLOUDINARY_API_KEY>
-    CLOUDINARY_API_SECRET=<YOUR_CLOUDINARY_API_SECRET>
-```
+    ```bash
+        POSTGRES_USER=<YOUR_USERNAME>
+        POSTGRES_PASSWORD=<YOUR_PASSWORD>
+        POSTGRES_DB=<YOUR_DB_NAME>
+        
+        JWT_SECRET_KEY=<YOUR_JWT_SECRET_KEY>
+        JWT_ALGORITHM=<YOUR_JWT_ALGORITHM>
+        JWT_TOKEN_EXPIRE_SECONDS=<YOUR_JWT_EXPIRE_SECONDS>
+        
+        MAIL_USERNAME=<YOUR_MAIL_USERNAME>
+        MAIL_PASSWORD=<YOUR_MAIL_PASSWORD>
+        MAIL_FROM=<YOUR_MAIL_FROM>
+        MAIL_PORT=<YOUR_MAIL_PORT>
+        MAIL_SERVER=<YOUR_MAIL_SERVER>
+        
+        CLOUDINARY_CLOUD_NAME=<YOUR_CLOUDINARY_CLOUD_NAME>
+        CLOUDINARY_API_KEY=<YOUR_CLOUDINARY_API_KEY>
+        CLOUDINARY_API_SECRET=<YOUR_CLOUDINARY_API_SECRET>
+    ```
+    
+    where 
+    
+    
+    | Name | Type | Description |
+    | --- | --- | --- |
+    | POSTGRES_USER | str | User name for accessing the database |
+    | POSTGRES_PASSWORD | str | Password for accessing the database |
+    | POSTGRES_DB | str | Database name |
+    | JWT_SECRET_KEY | str | Secret key for JWT tokens |
+    | JWT_ALGORITHM | str | Algorithm for JWT tokens |
+    | JWT_TOKEN_EXPIRE_SECONDS | int | Token expiration time in seconds |
+    | MAIL_USERNAME | str | Email address |
+    | MAIL_PASSWORD | str | Email password |
+    | MAIL_FROM | str | Email address |
+    | MAIL_PORT | int | Email port |
+    | MAIL_SERVER | str | Email server |
+    | CLOUDINARY_CLOUD_NAME | str | Cloudinary cloud name |
+    | CLOUDINARY_API_KEY | str | Cloudinary API key |
+    | CLOUDINARY_API_SECRET | str | Cloudinary API secret |
+    
+    ### 3. Run the application
+    
+    ```bash
+       docker-compose up --build
+    ```
+    
+    ### 4. Open the browser and go to http://localhost:8000
+    
+    
+    ### 5. Swagger documentation: http://localhost:8000/docs
 
-where 
 
-
-| Name | Type | Description |
-| --- | --- | --- |
-| POSTGRES_USER | str | User name for accessing the database |
-| POSTGRES_PASSWORD | str | Password for accessing the database |
-| POSTGRES_DB | str | Database name |
-| JWT_SECRET_KEY | str | Secret key for JWT tokens |
-| JWT_ALGORITHM | str | Algorithm for JWT tokens |
-| JWT_TOKEN_EXPIRE_SECONDS | int | Token expiration time in seconds |
-| MAIL_USERNAME | str | Email address |
-| MAIL_PASSWORD | str | Email password |
-| MAIL_FROM | str | Email address |
-| MAIL_PORT | int | Email port |
-| MAIL_SERVER | str | Email server |
-| CLOUDINARY_CLOUD_NAME | str | Cloudinary cloud name |
-| CLOUDINARY_API_KEY | str | Cloudinary API key |
-| CLOUDINARY_API_SECRET | str | Cloudinary API secret |
-
-### 3. Run the application
-
-```bash
-   docker-compose up --build
-```
-
-### 4. Open the browser and go to http://localhost:8000
-
-
-### 5. Swagger documentation: http://localhost:8000/docs
-
-
-## Reset password instructions 
+## Reset Password Instructions
 
 
 1. Run  the application
