@@ -1,3 +1,5 @@
+from typing import Union
+
 from fastapi import APIRouter, Depends, Request, UploadFile, File, HTTPException, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -14,10 +16,9 @@ from src.services.users import UserService
 router = APIRouter(prefix="/users", tags=["user"])
 limiter = Limiter(key_func=get_remote_address)
 
-@router.get('/me', response_model=UserResponse,
-            response_description="Get current user info (no more than 10 requests per minute)")
+@router.get('/me', response_description="Get current user info (no more than 10 requests per minute)")
 @limiter.limit("10/minute")
-async def get_current_user(request: Request, user: UserResponse = Depends(get_current_user)) -> User:
+async def get_current_user(request: Request, user: UserResponse = Depends(get_current_user)) -> UserResponse:
     return user
 
 @router.patch("/avatar", response_model=UserResponse)

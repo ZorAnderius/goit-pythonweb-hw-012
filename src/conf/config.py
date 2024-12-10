@@ -11,9 +11,6 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = os.getenv('JWT_SECRET_KEY')
     JWT_ALGORITHM : str = os.getenv('JWT_ALGORITHM')
     JWT_EXPIRATION_TIME: str = os.getenv('JWT_TOKEN_EXPIRE_SECONDS')
-    model_config = ConfigDict(
-        extra="ignore", env_file=".env", env_file_encoding="utf-8", case_sensitive=True
-    )
     MAIL_USERNAME : str = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD : str = os.getenv('MAIL_PASSWORD')
     MAIL_FROM : str = os.getenv('MAIL_FROM')
@@ -27,5 +24,11 @@ class Settings(BaseSettings):
     CLOUDINARY_CLOUD_NAME : str = os.getenv('CLOUDINARY_CLOUD_NAME')
     CLOUDINARY_API_KEY : str = os.getenv("CLOUDINARY_API_KEY")
     CLOUDINARY_API_SECRET : str = os.getenv('CLOUDINARY_API_SECRET')
+    REDIS_HOST: str = os.getenv("REDIS_HOST")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT"))
+
+    model_config = ConfigDict(
+        extra="ignore", env_file=".env", env_file_encoding="utf-8", case_sensitive=True
+    )
 
 settings = Settings()

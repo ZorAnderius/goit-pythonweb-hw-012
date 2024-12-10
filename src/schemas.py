@@ -36,13 +36,10 @@ class CreateUser(BaseModel):
     email: EmailStr = Field(..., max_length=50, description="User email")
     password: str = Field(..., max_length=50, description="User password")
 
-
-
 class UserResponse(UpdateUser):
     id: int
     role: UserRole
     avatar: str
-
 
     model_config = ConfigDict(from_attributes=True)
 
