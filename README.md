@@ -4,6 +4,7 @@
 
 - [Contacts App Installation](#contacts-app-installation)
 - [Reset Password Instructions](#reset-password-instructions)
+- [Generate Sphinx Documentation](#generate-sphinx-documentation)
 
 ## Contacts App Installation
 
