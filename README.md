@@ -87,4 +87,50 @@ where
 14. Click the "Execute" button.
 15. The password has been successfully reset.
 
+## Generate Sphinx Documentation
 
+1. Copy project to your local machine
+
+2. Create a virtual environment.
+    2.1. If you don't have poetry installed, run the following command (If you have skipped this step and go to step 2.2)
+
+```bash
+    pip install poetry
+```
+
+    2.2. Create a virtual environment
+
+```bash
+    poetry install
+```
+    2.3. Activate the virtual environment
+
+```bash
+    poetry shell
+```
+
+3. Install Sphinx
+
+```bash
+    poetry add sphinx -G dev
+```
+
+4. Go to the docs directory
+
+```bash
+        cd docs
+```
+
+5. Generate the documentation
+
+- for Windows
+```bash
+        .\\make.bat html
+```
+
+- for Linux
+```bash
+         make html
+``` 
+
+6. Run index.html file to see the documentation in the browser (path docs/_build/html/index.html)
