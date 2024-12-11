@@ -92,18 +92,18 @@ where
 1. Copy project to your local machine
 
 2. Create a virtual environment.
-    2.1. If you don't have poetry installed, run the following command (If you have skipped this step and go to step 2.2)
+2.1. If you don't have poetry installed, run the following command (If you have skipped this step and go to step 2.2)
 
 ```bash
     pip install poetry
 ```
 
-    2.2. Create a virtual environment
+2.2. Create a virtual environment
 
 ```bash
     poetry install
 ```
-    2.3. Activate the virtual environment
+2.3. Activate the virtual environment
 
 ```bash
     poetry shell
