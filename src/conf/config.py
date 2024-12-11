@@ -46,24 +46,24 @@ class Settings(BaseSettings):
     """
 
     DB_URL: str = f"postgresql+asyncpg://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@localhost:5432/{os.getenv('POSTGRES_DB')}"
-    JWT_SECRET_KEY: str = os.getenv('JWT_SECRET_KEY')
-    JWT_ALGORITHM: str = os.getenv('JWT_ALGORITHM')
-    JWT_EXPIRATION_TIME: str = os.getenv('JWT_TOKEN_EXPIRE_SECONDS')
-    MAIL_USERNAME: str = os.getenv('MAIL_USERNAME')
-    MAIL_PASSWORD: str = os.getenv('MAIL_PASSWORD')
-    MAIL_FROM: str = os.getenv('MAIL_FROM')
-    MAIL_PORT: str = os.getenv('MAIL_PORT')
-    MAIL_SERVER: str = os.getenv('MAIL_SERVER')
+    JWT_SECRET_KEY: str = os.getenv('JWT_SECRET_KEY', 'secret')
+    JWT_ALGORITHM: str = os.getenv('JWT_ALGORITHM', 'HS256')
+    JWT_EXPIRATION_TIME: str = os.getenv('JWT_TOKEN_EXPIRE_SECONDS', '3600')
+    MAIL_USERNAME: str = os.getenv('MAIL_USERNAME', 'some_example@email.com')
+    MAIL_PASSWORD: str = os.getenv('MAIL_PASSWORD', '')
+    MAIL_FROM: str = os.getenv('MAIL_FROM', 'some_example@email.com')
+    MAIL_PORT: str = os.getenv('MAIL_PORT', '587')
+    MAIL_SERVER: str = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_FROM_NAME: str = "Rest API Service"
     MAIL_STARTTLS: bool = False
     MAIL_SSL_TLS: bool = True
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
-    CLOUDINARY_CLOUD_NAME: str = os.getenv('CLOUDINARY_CLOUD_NAME')
-    CLOUDINARY_API_KEY: str = os.getenv("CLOUDINARY_API_KEY")
-    CLOUDINARY_API_SECRET: str = os.getenv('CLOUDINARY_API_SECRET')
-    REDIS_HOST: str = os.getenv("REDIS_HOST")
-    REDIS_PORT: int = int(os.getenv("REDIS_PORT"))
+    CLOUDINARY_CLOUD_NAME: str = os.getenv('CLOUDINARY_CLOUD_NAME', '')
+    CLOUDINARY_API_KEY: str = os.getenv("CLOUDINARY_API_KEY", "")
+    CLOUDINARY_API_SECRET: str = os.getenv('CLOUDINARY_API_SECRET', "")
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
 
     # Configuration options for Pydantic BaseSettings
     model_config = ConfigDict(
