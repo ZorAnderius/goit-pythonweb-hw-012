@@ -195,4 +195,4 @@ class ContactsRepository:
             )
 
         contacts = await self.session.execute(query)
-        return contacts.scalars().all()
+        return list(contacts.scalars().all())
