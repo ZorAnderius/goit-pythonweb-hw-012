@@ -1,19 +1,15 @@
 import sys
 import os
+import pytest
 
+from datetime import datetime, date
+from unittest.mock import AsyncMock, MagicMock
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import dialect
-
-from src.schemas import ContactsModel, UpdateContactModel
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from unittest.mock import AsyncMock, MagicMock
-
-from datetime import datetime, date
-
-import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from src.schemas import ContactsModel, UpdateContactModel
 from src.database.models import User, UserRole, Contact
 from src.repository.contacts import ContactsRepository
 
