@@ -47,7 +47,7 @@ async def update_avatar_user(
     file: UploadFile = File(),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> UserResponse:
+) -> User:
     """
     Update the avatar for the current user. Only admins are allowed to update the default avatar.
 

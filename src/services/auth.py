@@ -115,6 +115,7 @@ async def get_current_user(
             settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
+
         username = payload.get("sub")
         user_id = payload.get("id")
         if username is None:

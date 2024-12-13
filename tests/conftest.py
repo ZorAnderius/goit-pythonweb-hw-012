@@ -24,8 +24,8 @@ TestingSessionLocal = async_sessionmaker(
 )
 
 test_user = {
-    "username": "deadpool",
-    "email": "deadpool@example.com",
+    "username": "agent007",
+    "email": "agent007@gmail.com",
     "password": "12345678",
 }
 
@@ -42,8 +42,8 @@ def init_models_wrap():
                 email=test_user["email"],
                 hashed_password=hash_password,
                 confirmed=True,
-                role=UserRole.USER,
-                avatar="<https://twitter.com/gravatar>",
+                role=UserRole.ADMIN,
+                avatar="http://example.com/avatar.png",
             )
             session.add(current_user)
             await session.commit()
