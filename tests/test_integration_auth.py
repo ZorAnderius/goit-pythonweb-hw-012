@@ -1,15 +1,14 @@
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
-from fastapi import BackgroundTasks, HTTPException
+from fastapi import BackgroundTasks, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.conf.MESSAGES as messages
 from src.api.auth import create_user
 from src.database.models import UserRole, User
 from src.schemas import CreateUser
-from src.services.auth import Hash
-
+from src.services.auth import Hash, create_access_token
 
 user_data = {"username": "agent007",
              "email": "agent007@gmail.com",
@@ -52,6 +51,12 @@ def admin_user():
                 avatar="http://cloudinary.com/avatar.png",
                 confirmed=True,
                 role=UserRole.ADMIN)
+
+@pytest.fixture
+def mock_user_service(monkeypatch):
+    mock_service = AsyncMock()
+    monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_service)
+    return mock_service
 
 def test_signup(client, monkeypatch, simple_user):
     mock_send_email = MagicMock()
@@ -107,15 +112,13 @@ def test_create_admin_user(client, monkeypatch, admin_user):
 
 
 @pytest.mark.asyncio
-async def test_create_user(client, monkeypatch, mock_db, simple_user):
+async def test_create_user(client, monkeypatch, mock_user_service, mock_db, simple_user):
     mock_send_email = MagicMock()
     monkeypatch.setattr("src.api.auth.send_email", mock_send_email)
 
-    mock_user_service = AsyncMock()
     mock_user_service.get_user_by_email = AsyncMock(return_value=None)
     mock_user_service.get_user_by_username = AsyncMock(return_value=None)
     mock_user_service.create_user = AsyncMock(return_value=simple_user)
-    monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
 
     mock_hash = MagicMock()
     monkeypatch.setattr(Hash, "get_password_hash", mock_hash)
@@ -151,10 +154,8 @@ async def test_create_user(client, monkeypatch, mock_db, simple_user):
 
 
 @pytest.mark.asyncio
-async def test_create_user_email_exists(client, monkeypatch, mock_db, simple_user):
-    mock_user_service = AsyncMock()
+async def test_create_user_email_exists(client, mock_user_service, mock_db, simple_user):
     mock_user_service.get_user_by_email = AsyncMock(return_value=simple_user)
-    monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
 
     background_tasks = BackgroundTasks()
 
@@ -172,11 +173,9 @@ async def test_create_user_email_exists(client, monkeypatch, mock_db, simple_use
 
 
 @pytest.mark.asyncio
-async def test_create_user_username_exists(client, monkeypatch, mock_db, simple_user):
-    mock_user_service = AsyncMock()
+async def test_create_user_username_exists(client, mock_user_service, mock_db, simple_user):
     mock_user_service.get_user_by_email = AsyncMock(return_value=None)
     mock_user_service.get_user_by_username = AsyncMock(return_value=simple_user)
-    monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
 
     background_tasks = BackgroundTasks()
     mock_db = MagicMock(AsyncSession)
@@ -195,11 +194,10 @@ async def test_create_user_username_exists(client, monkeypatch, mock_db, simple_
 
 
 @pytest.mark.asyncio
-async def test_successful_login(client, simple_user):
+async def test_successful_login(client, mock_user_service, simple_user):
     hashed_password = Hash().get_password_hash(simple_user.hashed_password)
     simple_user.hashed_password = hashed_password
 
-    mock_user_service = AsyncMock()
     mock_user_service.get_user_by_username.return_value = simple_user
 
     with patch('src.api.auth.create_access_token', return_value="mocked_access_token"):
@@ -217,11 +215,10 @@ async def test_successful_login(client, simple_user):
 
 
 @pytest.mark.asyncio
-async def test_not_confirmed_login(client, unconfirmed_user):
+async def test_not_confirmed_login(client, mock_user_service, unconfirmed_user):
     hashed_password = Hash().get_password_hash(unconfirmed_user.hashed_password)
     unconfirmed_user.hashed_password = hashed_password
 
-    mock_user_service = AsyncMock()
     mock_user_service.get_user_by_username.return_value =unconfirmed_user
 
     with patch('src.api.auth.UserService', return_value=mock_user_service):
@@ -236,11 +233,10 @@ async def test_not_confirmed_login(client, unconfirmed_user):
 
 
 @pytest.mark.asyncio
-async def test_invalid_credentials(client, simple_user):
+async def test_invalid_credentials(client, mock_user_service, simple_user):
     hashed_password = Hash().get_password_hash(simple_user.hashed_password)
     simple_user.hashed_password = hashed_password
 
-    mock_user_service = AsyncMock()
     mock_user_service.get_user_by_username.return_value = simple_user
 
     with patch('src.api.auth.UserService', return_value=mock_user_service):
@@ -261,10 +257,8 @@ def test_validation_error_login(client):
     assert "detail" in data
 
 @pytest.mark.asyncio
-async def test_confirmed_email(client,monkeypatch, unconfirmed_user):
+async def test_confirmed_email(client, mock_user_service, unconfirmed_user):
     with patch("src.api.auth.get_email_from_token", return_value=unconfirmed_user.email):
-        mock_user_service = AsyncMock()
-        monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
         mock_user_service.get_user_by_username = AsyncMock(return_value=unconfirmed_user)
         mock_user_service.get_user_by_email.return_value = unconfirmed_user
         mock_user_service.confirmed_email = AsyncMock(return_value=None)
@@ -278,10 +272,8 @@ async def test_confirmed_email(client,monkeypatch, unconfirmed_user):
             mock_user_service.confirmed_email.assert_called_once_with(unconfirmed_user.email)
 
 @pytest.mark.asyncio
-async def test_email_already_confirmed(client, monkeypatch, simple_user):
+async def test_email_already_confirmed(client, mock_user_service, simple_user):
     with patch("src.api.auth.get_email_from_token", return_value=simple_user.email):
-        mock_user_service = AsyncMock()
-        monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
         mock_user_service.get_user_by_email.return_value = simple_user
 
         with patch("src.api.auth.UserService", return_value=mock_user_service):
@@ -291,11 +283,8 @@ async def test_email_already_confirmed(client, monkeypatch, simple_user):
             assert response.json() == {"message": "Email already confirmed"}
 
 @pytest.mark.asyncio
-async def test_user_not_found(client, monkeypatch):
-    # Мок для get_email_from_token
+async def test_user_not_found(client, mock_user_service):
     with patch("src.api.auth.get_email_from_token", return_value="nonexistent@example.com"):
-        mock_user_service = AsyncMock()
-        monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
         mock_user_service.get_user_by_email.return_value = None
 
         with patch("src.api.auth.UserService", return_value=mock_user_service):
@@ -303,3 +292,164 @@ async def test_user_not_found(client, monkeypatch):
 
             assert response.status_code == 400
             assert response.json() == {"detail": messages.VERIFICATION_ERROR}
+
+
+@pytest.mark.asyncio
+async def test_request_email_user_not_found(client, mock_user_service):
+    mock_user_service.get_user_by_email.return_value = None
+
+    with patch("src.api.auth.UserService", return_value=mock_user_service):
+        response = client.post(
+            "/api/auth/requset_email",
+            json={"email": "nonexistent@example.com"},
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {"detail": messages.VERIFICATION_ERROR}
+
+
+@pytest.mark.asyncio
+async def test_request_email_already_confirmed(client, mock_user_service, simple_user):
+
+    mock_user_service.get_user_by_email.return_value = simple_user
+
+    with patch("src.api.auth.UserService", return_value=mock_user_service):
+        response = client.post(
+            "/api/auth/requset_email",
+            json={"email": "confirmed@example.com"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"message": "Email already confirmed"}
+
+
+@pytest.mark.asyncio
+async def test_request_email_confirmation_sent(client, monkeypatch, mock_user_service, unconfirmed_user):
+    mock_user_service.get_user_by_email.return_value = unconfirmed_user
+
+    with patch("src.api.auth.UserService", return_value=mock_user_service), \
+         patch("src.api.auth.send_email") as mock_send_email:
+        response = client.post(
+            "/api/auth/requset_email",
+            json={"email": unconfirmed_user.email},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"message": "Check your email for confirmation"}
+
+        mock_send_email.assert_called_once_with(
+            unconfirmed_user.email,
+            unconfirmed_user.username,
+            mock.ANY
+        )
+
+@pytest.mark.asyncio
+async def test_password_reset_request_user_exists(client, mock_user_service, simple_user):
+    mock_user_service.get_user_by_email.return_value = simple_user
+
+    with patch("src.api.auth.UserService", return_value=mock_user_service), \
+         patch("src.api.auth.send_reset_password_email") as mock_send_reset_email:
+        response = client.post(
+            "/api/auth/password-reset-request",
+            json={"email": simple_user.email},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"message": "Check your email for reset password"}
+
+        mock_send_reset_email.assert_called_once_with(
+            simple_user.email,
+            simple_user.username,
+            mock.ANY
+        )
+
+@pytest.mark.asyncio
+async def test_password_reset_request_user_not_found(client, mock_user_service):
+    mock_user_service.get_user_by_email.return_value = None
+
+    with patch("src.api.auth.UserService", return_value=mock_user_service):
+        response = client.post(
+            "/api/auth/password-reset-request",
+            json={"email": "nonexistent@example.com"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "User with this email does not exist"}
+
+@pytest.mark.asyncio
+async def test_password_reset_verify_valid_token(client):
+    data = {"sub": "user@example.com"}
+    valid_token = await create_access_token(data, expires_delta=3600)
+
+    with patch("src.api.auth.get_email_from_token", return_value=data["sub"]):
+        response = client.get(f"/api/auth/password-reset-verify/{valid_token}")
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "message": "Token is valid",
+            "email": data["sub"],
+            "token": valid_token
+        }
+
+@pytest.mark.asyncio
+async def test_password_reset_verify_invalid_token(client):
+    invalid_token = "invalid_token"
+
+    with patch("src.api.auth.get_email_from_token", side_effect=ValueError("Invalid token")):
+        response = client.get(f"/api/auth/password-reset-verify/{invalid_token}")
+
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Invalid token"}
+
+
+@pytest.mark.asyncio
+async def test_reset_password_valid_token(client, mock_user_service, simple_user):
+    data = {"sub": simple_user.email}
+    valid_token = await create_access_token(data, expires_delta=3600)
+    new_password = "new_secure_password"
+
+    with patch("src.api.auth.get_email_from_token", return_value=simple_user.email):
+        mock_user_service.get_user_by_email.return_value = simple_user
+        mock_update_password = AsyncMock()
+        mock_user_service.update_password = mock_update_password
+
+        body = {
+            "token": valid_token,
+            "new_password": new_password
+        }
+
+        response = client.post("/api/auth/reset_password", json=body)
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "Password has been successfully reset"}
+
+        hashed_password = Hash().get_password_hash(new_password)
+        assert hashed_password != new_password
+        is_valid = Hash().verify_password(new_password, hashed_password)
+        assert is_valid is True
+        mock_update_password.assert_called_once_with(1, mock.ANY)
+
+        mock_user_service.get_user_by_email.assert_called_once_with(simple_user.email)
+
+
+@pytest.mark.asyncio
+async def test_reset_password_user_not_found(client, mock_user_service, simple_user):
+    data = {"sub": simple_user.email}
+    valid_token = await create_access_token(data, expires_delta=3600)
+    new_password = "new_secure_password"
+
+    with patch("src.api.auth.get_email_from_token", return_value=simple_user.email):
+        mock_user_service.get_user_by_email.return_value = None
+
+        mock_update_password = AsyncMock()
+        mock_user_service.update_password = mock_update_password
+
+        body = {
+            "token": valid_token,
+            "new_password": new_password
+        }
+
+        response = client.post("/api/auth/reset_password", json=body)
+
+        assert response.status_code == 404
+        assert response.json() == {"detail": messages.USER_EMAIL_EXISTS}

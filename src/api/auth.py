@@ -141,10 +141,12 @@ async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, r
     user_service = UserService(db)
     user = await user_service.get_user_by_email(body.email)
 
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=messages.VERIFICATION_ERROR)
     if user.confirmed:
         return {"message": "Email already confirmed"}
-    if user:
-        background_tasks.add_task(send_email, user.email, user.username, str(request.base_url))
+
+    background_tasks.add_task(send_email, user.email, user.username, str(request.base_url))
     return {"message": "Check your email for confirmation"}
 
 @router.post("/password-reset-request", response_description="Reset password")
@@ -174,8 +176,14 @@ async def password_reset_verify(token: str):
     :param token: Reset password token.
     :return: Message indicating token validity.
     """
-    email = await get_email_from_token(token)
-    return {"message": "Token is valid", "email": email, 'token': token}
+    try:
+        email = await get_email_from_token(token)
+        return {"message": "Token is valid", "email": email, "token": token}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 @router.post("/reset_password", response_description="Reset password token")
 async def reset_password(body: ResetPassword, db: Session = Depends(get_db)) -> dict:
@@ -190,7 +198,7 @@ async def reset_password(body: ResetPassword, db: Session = Depends(get_db)) -> 
     user_service = UserService(db)
     user = await user_service.get_user_by_email(email)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with this email does not exist")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_EMAIL_EXISTS)
     hashed_password = Hash().get_password_hash(body.new_password)
     await user_service.update_password(user.id, hashed_password)
     return {"message": "Password has been successfully reset"}
