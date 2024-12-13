@@ -120,7 +120,7 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
     user_service = UserService(db)
     user = await user_service.get_user_by_email(email)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification error")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=messages.VERIFICATION_ERROR)
 
     if user.confirmed:
         return {"message": "Email already confirmed"}

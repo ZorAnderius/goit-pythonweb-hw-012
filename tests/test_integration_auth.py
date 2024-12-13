@@ -1,5 +1,5 @@
 from unittest import mock
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,13 +10,18 @@ from src.database.models import UserRole, User
 from src.schemas import CreateUser
 from src.services.auth import Hash
 
-@pytest.fixture
-def mock_db():
-    return MagicMock(spec=AsyncSession)
 
 user_data = {"username": "agent007",
              "email": "agent007@gmail.com",
              "password": "12345678"}
+
+wrong_user_data = {"username": "agent007",
+             "email": "agent007@gmail.com",
+             "password": "11111111"}
+
+@pytest.fixture
+def mock_db():
+    return MagicMock(spec=AsyncSession)
 
 @pytest.fixture
 def simple_user():
@@ -28,7 +33,8 @@ def simple_user():
                 confirmed=True,
                 role=UserRole.USER)
 
-def user_unconfirmed():
+@pytest.fixture
+def unconfirmed_user():
     return User(id=1,
                 username="agent007",
                 email="agent007@gmail.com",
@@ -188,48 +194,112 @@ async def test_create_user_username_exists(client, monkeypatch, mock_db, simple_
     assert exc_info.value.detail == messages.USERNAME_EXISTS
 
 
+@pytest.mark.asyncio
+async def test_successful_login(client, simple_user):
+    hashed_password = Hash().get_password_hash(simple_user.hashed_password)
+    simple_user.hashed_password = hashed_password
 
-def test_not_confirmed_login(client):
-    response = client.post("api/auth/login",
-                           data={"username": user_data.get("username"), "password": user_data.get("password")})
+    mock_user_service = AsyncMock()
+    mock_user_service.get_user_by_username.return_value = simple_user
+
+    with patch('src.api.auth.create_access_token', return_value="mocked_access_token"):
+        with patch('src.api.auth.UserService', return_value=mock_user_service):
+            response = client.post(
+                "/api/auth/login",
+                data={"username": user_data["username"], "password": user_data["password"], "email": user_data["email"]}
+            )
+
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert "access_token" in data
+    assert data["access_token"] == "mocked_access_token"
+    assert data["token_type"] == "bearer"
+
+
+@pytest.mark.asyncio
+async def test_not_confirmed_login(client, unconfirmed_user):
+    hashed_password = Hash().get_password_hash(unconfirmed_user.hashed_password)
+    unconfirmed_user.hashed_password = hashed_password
+
+    mock_user_service = AsyncMock()
+    mock_user_service.get_user_by_username.return_value =unconfirmed_user
+
+    with patch('src.api.auth.UserService', return_value=mock_user_service):
+        response = client.post(
+            "/api/auth/login",
+            data={"username": user_data["username"], "password": user_data["password"], "email": user_data["email"]}
+        )
+
     assert response.status_code == 401, response.text
     data = response.json()
-    assert data["detail"] == "Електронна адреса не підтверджена"
-#
-# @pytest.mark.asyncio
-# async def test_login(client):
-#     async with TestingSessionLocal() as session:
-#         current_user = await session.execute(select(User).where(User.email == user_data.get("email")))
-#         current_user = current_user.scalar_one_or_none()
-#         if current_user:
-#             current_user.confirmed = True
-#             await session.commit()
-#
-#     response = client.post("api/auth/login",
-#                            data={"username": user_data.get("username"), "password": user_data.get("password")})
-#     assert response.status_code == 200, response.text
-#     data = response.json()
-#     assert "access_token" in data
-#     assert "token_type" in data
-#
-# def test_wrong_password_login(client):
-#     response = client.post("api/auth/login",
-#                            data={"username": user_data.get("username"), "password": "password"})
-#     assert response.status_code == 401, response.text
-#     data = response.json()
-#     assert data["detail"] == "Неправильний логін або пароль"
-#
-# def test_wrong_username_login(client):
-#     response = client.post("api/auth/login",
-#                            data={"username": "username", "password": user_data.get("password")})
-#     assert response.status_code == 401, response.text
-#     data = response.json()
-#     assert data["detail"] == "Неправильний логін або пароль"
-#
-# def test_validation_error_login(client):
-#     response = client.post("api/auth/login",
-#                            data={"password": user_data.get("password")})
-#     assert response.status_code == 422, response.text
-#     data = response.json()
-#     assert "detail" in data
+    assert data["detail"] == messages.EMAIL_NOT_CONFIRMED
 
+
+@pytest.mark.asyncio
+async def test_invalid_credentials(client, simple_user):
+    hashed_password = Hash().get_password_hash(simple_user.hashed_password)
+    simple_user.hashed_password = hashed_password
+
+    mock_user_service = AsyncMock()
+    mock_user_service.get_user_by_username.return_value = simple_user
+
+    with patch('src.api.auth.UserService', return_value=mock_user_service):
+        response = client.post(
+            "/api/auth/login",
+            data={"username": wrong_user_data["username"], "password": wrong_user_data["password"], "email": wrong_user_data["email"]}
+        )
+
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == messages.INCORRECT_CREDENTIALS
+
+def test_validation_error_login(client):
+    response = client.post("api/auth/login",
+                           data={"password": user_data.get("password")})
+    assert response.status_code == 422, response.text
+    data = response.json()
+    assert "detail" in data
+
+@pytest.mark.asyncio
+async def test_confirmed_email(client,monkeypatch, unconfirmed_user):
+    with patch("src.api.auth.get_email_from_token", return_value=unconfirmed_user.email):
+        mock_user_service = AsyncMock()
+        monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
+        mock_user_service.get_user_by_username = AsyncMock(return_value=unconfirmed_user)
+        mock_user_service.get_user_by_email.return_value = unconfirmed_user
+        mock_user_service.confirmed_email = AsyncMock(return_value=None)
+
+        with patch("src.api.auth.UserService", return_value=mock_user_service):
+            response = client.get(f"/api/auth/confirmed_email/{'mocked_token'}")
+
+
+            assert response.status_code == 200
+            assert response.json() == {"message": "Email confirmed"}
+            mock_user_service.confirmed_email.assert_called_once_with(unconfirmed_user.email)
+
+@pytest.mark.asyncio
+async def test_email_already_confirmed(client, monkeypatch, simple_user):
+    with patch("src.api.auth.get_email_from_token", return_value=simple_user.email):
+        mock_user_service = AsyncMock()
+        monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
+        mock_user_service.get_user_by_email.return_value = simple_user
+
+        with patch("src.api.auth.UserService", return_value=mock_user_service):
+            response = client.get(f"/api/auth/confirmed_email/{'mocked_token'}")
+
+            assert response.status_code == 200
+            assert response.json() == {"message": "Email already confirmed"}
+
+@pytest.mark.asyncio
+async def test_user_not_found(client, monkeypatch):
+    # Мок для get_email_from_token
+    with patch("src.api.auth.get_email_from_token", return_value="nonexistent@example.com"):
+        mock_user_service = AsyncMock()
+        monkeypatch.setattr("src.api.auth.UserService", lambda db: mock_user_service)
+        mock_user_service.get_user_by_email.return_value = None
+
+        with patch("src.api.auth.UserService", return_value=mock_user_service):
+            response = client.get(f"/api/auth/confirmed_email/{'mocked_token'}")
+
+            assert response.status_code == 400
+            assert response.json() == {"detail": messages.VERIFICATION_ERROR}
