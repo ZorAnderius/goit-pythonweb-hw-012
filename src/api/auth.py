@@ -10,6 +10,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+import src.conf.MESSAGES as messages
 from src.database.db import get_db
 from src.database.models import User, UserRole
 from src.schemas import CreateUser, UserResponse, Token, RequestEmail, ResetPassword
@@ -71,10 +72,10 @@ async def create_user(user_data: CreateUser, background_tasks: BackgroundTasks, 
     user_service = UserService(db)
     email_user = await user_service.get_user_by_email(user_data.email)
     if email_user:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"User with email {user_data.email} already exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=messages.USER_EMAIL_EXISTS)
     username_user = await user_service.get_user_by_username(user_data.username)
     if username_user:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"User with username {user_data.username} already exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=messages.USERNAME_EXISTS)
     user_data.password = Hash().get_password_hash(user_data.password)
 
     new_user = await user_service.create_user(user_data, user_role)
@@ -97,11 +98,11 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Async
     """
     user_service = UserService(db)
     user = await user_service.get_user_by_username(form_data.username)
-    if not user or not Hash().verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password", headers={"WWW-Authenticate": "Bearer"})
+    if not user or not Hash().verify_password(form_data.password, str(user.hashed_password)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.INCORRECT_CREDENTIALS, headers={"WWW-Authenticate": "Bearer"})
 
     if not user.confirmed:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email not confirmed")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.EMAIL_NOT_CONFIRMED, headers={"WWW-Authenticate": "Bearer"})
 
     access_token = await create_access_token(data={"sub": user.username, "id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}
