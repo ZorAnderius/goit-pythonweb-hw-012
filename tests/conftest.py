@@ -1,4 +1,5 @@
 import asyncio
+from datetime import date, timedelta, datetime
 
 import pytest
 import pytest_asyncio
@@ -7,8 +8,9 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from main import app
-from src.database.models import Base, User, UserRole
+from src.database.models import Base, User, UserRole, Contact
 from src.database.db import get_db
+from src.schemas import ContactsResponse
 from src.services.auth import create_access_token, Hash
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
@@ -28,6 +30,12 @@ test_user = {
     "email": "agent007@gmail.com",
     "password": "12345678",
 }
+
+test_contact = {'first_name': "John",
+                'last_name': "Doe",
+                'email': "john.doe@example.com",
+                'dob': (datetime.today() + timedelta(days=3)).date(),
+                'phone':"1234567890"}
 
 @pytest.fixture(scope="module", autouse=True)
 def init_models_wrap():
@@ -49,6 +57,16 @@ def init_models_wrap():
             await session.commit()
             await session.refresh(current_user)
             test_user["id"] = current_user.id
+            current_contact = Contact(
+                user_id=current_user.id,
+                first_name=test_contact['first_name'],
+                last_name=test_contact['last_name'],
+                email=test_contact['email'],
+                dob= test_contact['dob'],
+                phone=test_contact['phone'],
+            )
+            session.add(current_contact)
+            await session.commit()
 
     asyncio.run(init_models())
 

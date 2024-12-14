@@ -77,7 +77,7 @@ async def get_contact_for_weekly_birthday(birthday_date: Optional[date] = Query(
 )
 async def get_contact(contact_id: int,
                       db: AsyncSession = Depends(get_db),
-                      user: User = Depends(get_current_user)) -> ContactsResponse:
+                      user: User = Depends(get_current_user)) -> Contact:
     """
     Retrieve a contact by its ID.
 
