@@ -136,3 +136,6 @@ where
 ``` 
 
 6. Run index.html file to see the documentation in the browser (path docs/_build/html/index.html)
+
+
+## Generate Sphinx Documentation

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 echo "Waiting for postgres to be ready..."
-./wait-for-it.sh postgres:5432 --timeout=10 --strict -- echo "PostgreSQL is ready!"
+./wait-for-it.sh postgres:5432 --timeout=30 --strict -- echo "PostgreSQL is ready!"
 
 echo "Checking if database exists..."
-PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -tc "SELECT 1 FROM pg_database WHERE datname = '${POSTGRES_DB}'" | grep -q 1
-if [ $? -ne 0 ]; then
+DB_EXISTS=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -tc "SELECT 1 FROM pg_database WHERE datname = '${POSTGRES_DB}'" | tr -d '[:space:]')
+if [ "$DB_EXISTS" != "1" ]; then
     echo "Database '${POSTGRES_DB}' does not exist. Creating..."
     PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -c "CREATE DATABASE ${POSTGRES_DB}"
 else
@@ -26,7 +26,7 @@ else
 fi
 
 
-ALCHEMIC_TABLE_CHECK=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -tc "SELECT to_regclass('public.alembic_version');")
+ALCHEMIC_TABLE_CHECK=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -tc "SELECT to_regclass('public.alembic_version');" | tr -d '[:space:]')
 
 if [ "$ALCHEMIC_TABLE_CHECK" == "NULL" ]; then
     echo "alembic_version table does not exist. Creating migration files..."
