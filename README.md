@@ -121,19 +121,19 @@ where
 4. Go to the docs directory
 
 ```bash
-        cd docs
+   cd docs
 ```
 
 5. Generate the documentation
 
 - for Windows
 ```bash
-        .\\make.bat html
+   .\\make.bat html
 ```
 
 - for Linux
 ```bash
-         make html
+   make html
 ``` 
 
 6. Run index.html file to see the documentation in the browser (path docs/_build/html/index.html)
@@ -141,4 +141,11 @@ where
 
 ## Test the application
 
-Link to the test file: https://github.com/ZorAnderius/goit-pythonweb-hw-012/htmlcov/index.html
+1. Run  the application
+2. In terminal run the following command
+
+```bash
+   pytest --cov=src tests/ --cov-report=html
+```
+
+3. Open the coverage report in the browser (path html_cov/index.html)

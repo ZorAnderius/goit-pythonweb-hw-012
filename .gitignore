@@ -166,3 +166,4 @@ data/
 *.swp
 .sphinx/
 _build/
+test.db
