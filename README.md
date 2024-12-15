@@ -138,4 +138,6 @@ where
 6. Run index.html file to see the documentation in the browser (path docs/_build/html/index.html)
 
 
-## Generate Sphinx Documentation
+## Test the application
+
+Link to the test file: https://github.com/ZorAnderius/goit-pythonweb-hw-012/htmlcov/index.html
