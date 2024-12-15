@@ -10,10 +10,10 @@ from datetime import date
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.services.auth import get_current_user
+from src.api.users import get_current_user
 from src.database.db import get_db
 from src.database.models import Contact, User
-from src.schemas import ContactsResponse, UpdateContactModel, ContactsModel
+from src.schemas import ContactsResponse, UpdateContactModel, ContactsModel, UserResponse
 from src.services.contacts import ContactsServices
 
 router = APIRouter(

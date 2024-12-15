@@ -123,20 +123,20 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    # Check Redis cache for user data
     redis_client = await get_redis_variable()
     user_cache = await redis_client.get(f"user:{user_id}")
     if user_cache:
-        return UserResponse.model_validate_json(user_cache)
+        return User(**json.loads(user_cache))
 
-    # Retrieve user from the database if not found in cache
     user_service = UserService(db)
     user = await user_service.get_user_by_username(username)
     if user is None:
         raise credentials_exception
 
     user_response = UserResponse.model_validate(user)
-    await redis_client.set(f"user:{user.id}", user_response.model_dump_json(), ex=500)
+    await redis_client.set(f"user:{user.id}",
+                           user_response.model_dump_json(),
+                           ex=500)
 
     return user
 

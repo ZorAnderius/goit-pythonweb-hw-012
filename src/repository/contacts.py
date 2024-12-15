@@ -10,12 +10,14 @@ from typing import List, Optional
 from datetime import date, timedelta
 from calendar import monthrange
 
-from sqlalchemy import select, extract, asc
+from fastapi import HTTPException, status
+from sqlalchemy import select, extract
 from sqlalchemy.sql import and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models import Contact, User
-from src.schemas import ContactsModel
+from src.schemas import ContactsModel, UserResponse
+from src.services.users import UserService
 
 
 class ContactsRepository:
@@ -60,7 +62,7 @@ class ContactsRepository:
         Returns:
             List[Contact]: A list of contacts matching the given filters.
         """
-        query = select(Contact).filter_by(user=user).offset(skip).limit(limit)
+        query = select(Contact).filter(Contact.user == user).offset(skip).limit(limit)
         if first_name:
             query = query.where(Contact.first_name.ilike(f"%{first_name}%"))
         if last_name:
@@ -82,7 +84,7 @@ class ContactsRepository:
         Returns:
             Contact: The contact matching the given ID, or None if not found.
         """
-        query = select(Contact).filter_by(id=contact_id, user=user)
+        query = select(Contact).filter(Contact.id == contact_id, Contact.user == user)
         contact = await self.session.execute(query)
         return contact.scalar_one_or_none()
 
@@ -97,7 +99,7 @@ class ContactsRepository:
         Returns:
             Contact: The newly created contact.
         """
-        contact = Contact(**body.model_dump(exclude_unset=True), user=user)
+        contact = Contact(**body.model_dump(exclude_unset=True), user_id=user.id)
         self.session.add(contact)
         await self.session.commit()
         await self.session.refresh(contact)

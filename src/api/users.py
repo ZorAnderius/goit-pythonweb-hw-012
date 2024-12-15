@@ -5,8 +5,6 @@ This module provides endpoints for managing user data, including fetching the cu
 and updating user avatars. It includes rate limiting for specific operations.
 """
 
-from typing import Union
-
 from fastapi import APIRouter, Depends, Request, UploadFile, File, HTTPException, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -25,10 +23,11 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.get(
     '/me',
+    response_model=UserResponse,
     response_description="Get current user info (no more than 10 requests per minute)"
 )
 @limiter.limit("10/minute")
-async def get_current_user(request: Request, user: UserResponse = Depends(get_current_user)) -> UserResponse:
+async def get_current_user(request: Request, user: UserResponse = Depends(get_current_user)) -> User:
     """
     Retrieve information about the currently authenticated user.
 
